@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>오늘 뭐 입지? - 날씨 코디 추천</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .weather-card { background: linear-gradient(135deg, #74abe2, #5563c1); color: white; border: none; }
+        .outfit-img { height: 350px; object-fit: cover; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold mb-3">☀️ 오늘 뭐 입지?</h1>
+        <form method="GET" class="d-flex justify-content-center gap-2">
+            <input type="text" name="city" class="form-control w-25" placeholder="도시명 입력 (영문 예: Seoul, Tokyo)" value="{{ city }}">
+            <button type="submit" class="btn btn-primary fw-bold">날씨 조회</button>
+        </form>
+    </div>
+
+    <div class="card weather-card p-4 text-center shadow mb-5">
+        <h2 class="fw-bold">{{ city }}의 현재 날씨</h2>
+        <h1 class="display-3 fw-bold my-2">{{ temp }}°C</h1>
+        <p class="fs-4 mb-1">상태: {{ condition }}</p>
+        <span class="badge bg-white text-dark fs-6 align-self-center px-3 py-2 mt-2">지금은 {{ season }} 패션 추천 기온!</span>
+    </div>
+
+    <h3 class="fw-bold mb-4 text-center">👗 추천 코디 스타일상품 (Pinterest 실시간 트렌드)</h3>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for outfit in outfits %}
+        <div class="col">
+            <div class="card h-100 shadow-sm border-0">
+                <img src="{{ outfit.image }}" class="card-img-top outfit-img" alt="코디 이미지">
+                <div class="card-body">
+                    <p class="card-text text-truncate fw-semibold">{{ outfit.title }}</p>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center w-100">가져온 코디 데이터가 없습니다.</p>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>
