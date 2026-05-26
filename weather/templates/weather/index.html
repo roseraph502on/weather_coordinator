@@ -2,47 +2,149 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>오늘 뭐 입지? - 날씨 코디 추천</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEATHER CODI APP</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        .weather-card { background: linear-gradient(135deg, #74abe2, #5563c1); color: white; border: none; }
-        .outfit-img { height: 350px; object-fit: cover; border-radius: 10px; }
+        /* 이미지와 똑같은 감성적인 하늘 배경 세팅 */
+        body {
+            background: url('https://i.pinimg.com/1200x/5a/01/81/5a0181d2333f4cf6f260253dfcb392df.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+        }
+        /* 날씨 블록 유리모프즘(Glassmorphism) 효과 */
+        .weather-container {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 30px 20px;
+            max-width: 450px;
+            margin: 0 auto;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .city-name { font-size: 24px; color: #222; margin-bottom: 5px; }
+        .temp-display { font-size: 54px; font-weight: 300; color: #111; }
+        
+        /* 스타일 태그 버튼 스타일 */
+        .tag-container { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
+        .style-tag {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 6px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #555;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        /* 코디 추천 구역 */
+        .section-title {
+            text-align: center;
+            color: #2c444e;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        /* 이미지 슬라이더 카드 */
+        .outfit-slider-card {
+            background: white;
+            border-radius: 0px;
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .slider-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            padding: 40px;
+        }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h1 class="fw-bold mb-3">☀️ 오늘 뭐 입지?</h1>
-        <form method="GET" class="d-flex justify-content-center gap-2">
-            <input type="text" name="city" class="form-control w-25" placeholder="도시명 입력 (영문 예: Seoul, Tokyo)" value="{{ city }}">
-            <button type="submit" class="btn btn-primary fw-bold">날씨 조회</button>
-        </form>
+<div class="container py-4">
+    <div class="text-center mb-2">
+        <img src="https://static.vecteezy.com/system/resources/previews/024/825/180/non_2x/3d-weather-icon-day-free-png.png" style="width: 140px; height: auto;" alt="Weather Icon">
     </div>
 
-    <div class="card weather-card p-4 text-center shadow mb-5">
-        <h2 class="fw-bold">{{ city }}의 현재 날씨</h2>
-        <h1 class="display-3 fw-bold my-2">{{ temp }}°C</h1>
-        <p class="fs-4 mb-1">상태: {{ condition }}</p>
-        <span class="badge bg-white text-dark fs-6 align-self-center px-3 py-2 mt-2">지금은 {{ season }} 패션 추천 기온!</span>
+    <div class="weather-container shadow-sm">
+        <div class="city-name">{{ city }}</div>
+        <div class="temp-display">{{ temp }}°C</div>
+        
+        <div class="tag-container">
+            <span class="style-tag">Lovely</span>
+            <span class="style-tag">Office</span>
+            <span class="style-tag">Hip</span>
+            <span class="style-tag">Casual</span>
+        </div>
     </div>
 
-    <h3 class="fw-bold mb-4 text-center">👗 추천 코디 스타일상품 (Pinterest 실시간 트렌드)</h3>
-    <div class="row row-cols-1 row-cols-md-4 g-4">
-        {% for outfit in outfits %}
-        <div class="col">
-            <div class="card h-100 shadow-sm border-0">
-                <img src="{{ outfit.image }}" class="card-img-top outfit-img" alt="코디 이미지">
-                <div class="card-body">
-                    <p class="card-text text-truncate fw-semibold">{{ outfit.title }}</p>
+    <div class="max-width: 450px; margin: 20px auto 0; text-center" style="max-width: 450px; margin: 15px auto;">
+        <div class="p-3 rounded-4 bg-white bg-opacity-75 text-secondary shadow-sm text-center small fw-medium">
+            🤖 AI 요약: "{{ ai_briefing }}"
+        </div>
+    </div>
+
+    <h2 class="section-title">RECOMENDED CODINATION</h2>
+
+    <div id="outfitCarousel" class="carousel slide outfit-slider-card shadow" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            {% for outfit in outfits %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ outfit.image }}" class="slider-img" alt="{{ outfit.title }}">
+                <div class="p-3 text-center bg-light border-top">
+                    <p class="m-0 text-truncate text-muted small fw-bold">{{ outfit.title }}</p>
                 </div>
             </div>
+            {% empty %}
+            <div class="carousel-item active p-5 text-center text-muted">
+                추천 의상 이미지를 파싱 중입니다.
+            </div>
+            {% endfor %}
         </div>
-        {% empty %}
-        <p class="text-center w-100">가져온 코디 데이터가 없습니다.</p>
-        {% endfor %}
+        
+        <button class="carousel-control-prev" type="button" data-bs-target="#outfitCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true" style="filter: invert(1);"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#outfitCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true" style="filter: invert(1);"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasLat = urlParams.has('lat');
+    const hasLon = urlParams.has('lon');
+    const hasCity = urlParams.has('city');
+
+    if (!hasLat && !hasLon && !hasCity) {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    // 위경도를 물고 장고 내부 매핑 주소로 새로고침
+                    window.location.href = `/?lat=${lat}&lon=${lon}`;
+                },
+                (error) => {
+                    console.log("위치 조회 실패, 기본 서울 처리", error);
+                }
+            );
+        }
+    }
+</script>
 </body>
 </html>
