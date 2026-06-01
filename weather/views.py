@@ -19,13 +19,14 @@ def index(request):
     display_city = "서울"
     current_temp = 22
     condition_text = "맑음"
+    season = "봄·가을"
 
     # 2. 위경도 기반 주소 추출 (Timeout 안전장치 추가)
     if lat and lon:
         try:
             # timeout=1.5 설정을 주어 1.5초 내에 응답 안 오면 다음 단계로 강제 진행
             geo_url = f"https://api.openweathermap.org/geo/1.0/reverse?lat={lat}&lon={lon}&limit=1&appid={api_key}"
-            geo_res = requests.get(geo_url, timeout=1.5).json()
+            geo_res = requests.get(geo_url, timeout=0.5).json()
             if geo_res and len(geo_res) > 0:
                 display_city = geo_res[0].get("local_names", {}).get("ko", geo_res[0].get("name", "내 위치"))
             else:
