@@ -4,18 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WEATHER CODI APP</title>
-    <link rel="shortcut icon" href="https://static.vecteezy.com/system/resources/previews/024/825/180/non_2x/3d-weather-icon-day-free-png.png" type="image/png">
-    <link rel="icon" href="https://static.vecteezy.com/system/resources/previews/024/825/180/non_2x/3d-weather-icon-day-free-png.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* 이미지와 똑같은 감성적인 하늘 배경 세팅 */
         body {
             background: url('https://i.pinimg.com/1200x/5a/01/81/5a0181d2333f4cf6f260253dfcb392df.jpg') no-repeat center center fixed;
             background-size: cover;
             font-family: 'Arial', sans-serif;
             min-height: 100vh;
         }
-        /* 날씨 블록 유리모프즘(Glassmorphism) 효과 */
         .weather-container {
             background: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(8px);
@@ -30,7 +26,6 @@
         .city-name { font-size: 24px; color: #222; margin-bottom: 5px; }
         .temp-display { font-size: 54px; font-weight: 300; color: #111; }
         
-        /* 스타일 태그 버튼 스타일 */
         .tag-container { display: flex; justify-content: center; gap: 8px; margin-top: 15px; }
         .style-tag {
             background: rgba(255, 255, 255, 0.7);
@@ -39,34 +34,46 @@
             border-radius: 4px;
             font-size: 13px;
             color: #555;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+        .style-tag.active {
+            background: #2c444e !important;
+            color: #ffffff !important;
+            font-weight: bold;
         }
         
-        /* 코디 추천 구역 */
         .section-title {
             text-align: center;
             color: #2c444e;
             font-weight: 700;
-            letter-spacing: 1px;
             margin-top: 40px;
             margin-bottom: 20px;
             font-size: 20px;
         }
-        /* 이미지 슬라이더 카드 */
         .outfit-slider-card {
             background: white;
-            border-radius: 0px;
             max-width: 450px;
             margin: 0 auto;
-            position: relative;
+            min-height: 400px;
+            max-height: 400px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         .slider-img {
             width: 100%;
             height: auto;
             display: block;
             padding: 40px;
+        }
+        .loading-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 0;
+            color: #666;
         }
     </style>
 </head>
@@ -82,44 +89,34 @@
         <div class="temp-display">{{ temp }}°C</div>
         
         <div class="tag-container">
-            <button class="style-tag">Lovely</button>
-            <button class="style-tag">Office</button>
-            <button class="style-tag">Hip</button>
-            <button class="style-tag">Casual</button>
+            <button class="style-tag {% if current_style == 'Lovely' %}active{% endif %}" onclick="changeStyle('Lovely')">Lovely</button>
+            <button class="style-tag {% if current_style == 'Office' %}active{% endif %}" onclick="changeStyle('Office')">Office</button>
+            <button class="style-tag {% if current_style == 'Hip' %}active{% endif %}" onclick="changeStyle('Hip')">Hip</button>
+            <button class="style-tag {% if current_style == 'Casual' %}active{% endif %}" onclick="changeStyle('Casual')">Casual</button>
         </div>
     </div>
 
-    <div class="max-width: 450px; margin: 20px auto 0; text-center" style="max-width: 450px; margin: 15px auto;">
+    <div style="max-width: 450px; margin: 15px auto;">
         <div class="p-3 rounded-4 bg-white bg-opacity-75 text-secondary shadow-sm text-center small fw-medium">
             🤖 AI 요약: "{{ ai_briefing }}"
         </div>
     </div>
 
-    <h2 class="section-title">RECOMENDED CODINATION</h2>
+    <h2 class="section-title">RECOMMENDED COORDINATION</h2>
 
     <div id="outfitCarousel" class="carousel slide outfit-slider-card shadow" data-bs-ride="carousel">
-        <div class="carousel-inner">
-            {% for outfit in outfits %}
-            <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                <img src="{{ outfit.image }}" class="slider-img" alt="{{ outfit.title }}">
-                <div class="p-3 text-center bg-light border-top">
-                    <p class="m-0 text-truncate text-muted small fw-bold">{{ outfit.title }}</p>
-                </div>
+        <div class="carousel-inner" id="carousel-content">
+            <div class="loading-box">
+                <div class="spinner-border text-secondary mb-3" role="status"></div>
+                <div class="fw-bold small">핀터레스트 실시간 검색 매칭 중...</div>
             </div>
-            {% empty %}
-            <div class="carousel-item active p-5 text-center text-muted">
-                추천 의상 이미지를 파싱 중입니다.
-            </div>
-            {% endfor %}
         </div>
         
         <button class="carousel-control-prev" type="button" data-bs-target="#outfitCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true" style="filter: invert(1);"></span>
-            <span class="visually-hidden">Previous</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#outfitCarousel" data-bs-slide="next">
             <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true" style="filter: invert(1);"></span>
-            <span class="visually-hidden">Next</span>
         </button>
     </div>
 </div>
@@ -127,26 +124,55 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const hasLat = urlParams.has('lat');
-    const hasLon = urlParams.has('lon');
-    const hasCity = urlParams.has('city');
-
-    if (!hasLat && !hasLon && !hasCity) {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    // 위경도를 물고 장고 내부 매핑 주소로 새로고침
-                    window.location.href = `/?lat=${lat}&lon=${lon}`;
-                },
-                (error) => {
-                    console.log("위치 조회 실패, 기본 서울 처리", error);
-                }
-            );
-        }
+    function changeStyle(styleName) {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('style', styleName);
+        window.location.href = window.location.pathname + '?' + urlParams.toString();
     }
+
+    // 🚀 페이지 오픈 시 이미지칸만 따로 백엔드 크롤러에 비동기(Fetch API) 요청
+    document.addEventListener("DOMContentLoaded", function() {
+        const season = "{{ season|escapejs }}";
+        const style = "{{ current_style|escapejs }}";
+        const targetContainer = document.getElementById("carousel-content");
+
+        console.clear();
+        console.log("%c[📡 이미지 전용 비동기 로더 가동]", "color: white; background: #007bff; padding: 4px 8px; border-radius: 4px; font-weight: bold;");
+        console.log(`🔗 검색 링크 타겟: {{ pinterest_url|escapejs }}`);
+
+        // 이미지칸 전용 백엔드 API 호출
+        fetch(`/get-outfits/?season=${encodeURIComponent(season)}&style=${encodeURIComponent(style)}`)
+            .then(response => response.json())
+            .then(data => {
+                const outfits = data.outfits;
+                if (!outfits || outfits.length === 0) {
+                    targetContainer.innerHTML = `<div class="p-5 text-center text-muted small">추천 의상을 찾지 못했습니다.</div>`;
+                    return;
+                }
+
+                // 가져온 순수 검색 핀 이미지들로 내부 HTML을 조립해서 주입
+                let htmlContent = "";
+                outfits.forEach((imgUrl, index) => {
+                    const activeClass = index === 0 ? "active" : "";
+                    htmlContent += `
+                        <div class="carousel-item ${activeClass}">
+                            <img src="${imgUrl}" class="slider-img" alt="코디">
+                            <div class="p-3 text-center bg-light border-top">
+                                <p class="m-0 text-truncate text-muted small fw-bold">${season} ${style} 검색 매칭 픽 ${index + 1}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // 로딩 박스 없애고 조립된 이미지들 바인딩
+                targetContainer.innerHTML = htmlContent;
+                console.log("📊 [로딩 완료] 수급된 순수 검색 이미지 목록:", outfits);
+            })
+            .catch(error => {
+                console.error("이미지 수급 실패:", error);
+                targetContainer.innerHTML = `<div class="p-5 text-center text-danger small">로딩 오류가 발생했습니다.</div>`;
+            });
+    });
 </script>
 </body>
 </html>

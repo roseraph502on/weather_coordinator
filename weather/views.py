@@ -1,24 +1,28 @@
 import os
-import random
+import logging
+import re
+import urllib.parse
 import requests
+from bs4 import BeautifulSoup
 from django.shortcuts import render
+from django.http import JsonResponse
 from openai import OpenAI
 
+logger = logging.getLogger(__name__)
 
+# [1] 메인 화면 렌더링 뷰 (날씨와 기본 틀만 먼저 빠르게 로딩)
 def index(request):
-    # 1. 파라미터 안전하게 받기
     city = request.GET.get("city", "").strip()
     lat = request.GET.get("lat", "").strip()
     lon = request.GET.get("lon", "").strip()
+    selected_style = request.GET.get("style", "Office").strip()
 
     api_key = "7e23dd278af75d56e9aaf95a3e9018d7"
-    
     display_city = "서울"
     current_temp = 22
     condition_text = "맑음"
     season = "봄·가을"
 
-    # 2. 날씨 URL 결정
     if lat and lon:
         try:
             geo_url = f"https://api.openweathermap.org/geo/1.0/reverse?lat={lat}&lon={lon}&limit=1&appid={api_key}"
@@ -29,12 +33,10 @@ def index(request):
             display_city = "내 위치"
         weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric&lang=kr"
     else:
-        if not city:
-            city = "Seoul"
+        if not city: city = "Seoul"
         display_city = city
         weather_url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric&lang=kr"
 
-    # 3. 날씨 데이터 호출
     try:
         response = requests.get(weather_url, timeout=1.0)
         if response.status_code == 200:
@@ -44,74 +46,101 @@ def index(request):
             current_temp = int(weather_data["main"]["temp"])
             condition_text = weather_data["weather"][0]["description"]
     except Exception as e:
-        print(f"[날씨 API 에러] {e}")
+        logger.error(f"[날씨 에러] {e}")
 
-    # 4. 기온별 계절 판정
-    if current_temp < 10:
-        season = "겨울"
-    elif current_temp < 22:
-        season = "봄·가을"
-    else:
-        season = "여름"
+    if current_temp < 10: season = "겨울"
+    elif current_temp < 22: season = "봄·가을"
+    else: season = "여름"
 
-    # 5. 🔥 [403 에러 원천 차단] 리얼 핀터레스트 고화질 이미지 CDN 다이렉트 셋
+    style_kr_map = {"Lovely": "러블리 코디", "Office": "오피스룩 여자", "Hip": "힙한 스타일", "Casual": "캐주얼 룩"}
+    style_kr = style_kr_map.get(selected_style, "오피스룩 여자")
+    search_keyword = f"{season} {style_kr}"
+    
+    encoded_keyword = urllib.parse.quote(search_keyword)
+    pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
 
-    pinterest_image_pool = {
-        "여름": [
-            {"title": "린넨 블레이저 & 슬랙스 오피스룩", "image": "https://i.pinimg.com/736x/3a/13/b2/3a13b22cff21279030c03160c9ed4f2e.jpg"},
-            {"title": "모던 반팔 자켓 & 와이드 팬츠", "image": "https://i.pinimg.com/1200x/5d/bb/a5/5dbba569dbf8c3d6845633da3aaa98da.jpg"},
-            {"title": "화이트 스퀘어넥 블라우스 룩", "image": "https://i.pinimg.com/736x/57/4e/84/574e8405d21f8a1bb07a998a64c2aceb.jpg"},
-            {"title": "클래식 셔츠 원피스 스타일링", "image": "https://i.pinimg.com/736x/e8/18/8c/e8188c6e2d760bbd2b91b3d03d0256cb.jpg                                                                                                                          "}
-        ],
-          
-        "봄·가을": [
-            {"title": "모던 클래식 트렌치코트 룩", "image": "https://i.pinimg.com/736x/2a/f7/e8/2af7e84b20d87e2b301084de6a4b5176.jpg"},
-            {"title": "레더 자켓 코디", "image": "https://i.pinimg.com/1200x/ef/72/cd/ef72cd2afb305519afc9d008499e88c5.jpg"},
-            {"title": "체크 자켓 & 스트레이트 데님", "image": "https://i.pinimg.com/736x/f8/00/7d/f8007d51c09966fa23b7508929e4800f.jpg              "},
-            {"title": "소프트 카디건 미니멀 오피스 무드", "image": "https://i.pinimg.com/736x/fe/bc/7e/febc7e6e0a1af1069fa77ee42ea3ed04.jpg"}
-        ],
-        "겨울": [
-            {"title": "울 롱코트 & 캐시미어 머플러", "image": "https://i.pinimg.com/736x/9d/4d/5d/9d4d5d2758777537da490283f9d50613.jpg"},
-            {"title": "프리미엄 구스 다운 & 폴라 니트", "image": "https://i.pinimg.com/736x/22/d6/03/22d603568a2dfed040cdad67aeca4e75.jpg"},
-            {"title": "헤링본 더블 코트 시크 스탠스", "image": "https://i.pinimg.com/736x/ed/60/b8/ed60b897b30f5cd6c71ab4736c354f39.jpg"},
-            {"title": "시어링 무스탕 자켓 & 부츠 룩", "image": "https://i.pinimg.com/736x/5d/5f/34/5d5f34062081f53e2464b85c1c02366f.jpg"}
-        ]
-    }
-
-    # 현재 계절풀에서 무작위로 4장 믹스 매치해 슬라이더로 전송
-    pool = pinterest_image_pool.get(season, pinterest_image_pool["여름"])
-    recommended_outfits = random.sample(pool, min(4, len(pool)))
-
-
-
-    # 6. OpenAI GPT 스타일 가이드 생성
+    # AI 브리핑 생성
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     if openai_key and openai_key.startswith("sk-"):
         try:
             client = OpenAI(api_key=openai_key)
-            prompt = f"현재 도시는 {display_city}이고 기온은 {current_temp}도, 날씨는 '{condition_text}'야. {season} 옷차림 추천 이미지와 곁들일 텍스트 패션 팁을 친절한 말투로 50자 내외의 한 줄 평으로 써줘."
+            prompt = f"현재 날씨는 {current_temp}도, 컨셉은 '{selected_style}'이야. 패션 코디 조언을 한 줄로 해줘."
             ai_response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "너는 패션 에디터야."},
-                    {"role": "user", "content": prompt}
-                ],
-                max_tokens=150,
-                timeout=1.2
+                model="gpt-4o-mini", messages=[{"role": "user", "content": prompt}], max_tokens=150, timeout=1.2
             )
             ai_briefing = ai_response.choices[0].message.content
         except Exception:
-            ai_briefing = f"오늘 {display_city}의 날씨는 {current_temp}도로, 선선한 {season} 맞춤 룩이 가장 잘 어울리는 날입니다!"
+            ai_briefing = f"오늘 날씨({current_temp}°C)에 어울리는 {season} {selected_style} 스타일링입니다."
     else:
-        ai_briefing = f"오늘 {display_city}의 날씨는 {current_temp}도로, 스타일리시한 {season} 레이어드 룩을 추천합니다."
+        ai_briefing = f"오늘({current_temp}°C)에 어울리는 {season} {selected_style} 스타일링입니다."
 
-    # 7. HTML 템플릿에 데이터 바인딩
     context = {
-        "city": display_city, 
-        "temp": current_temp,
-        "condition": condition_text,
-        "season": season,
-        "outfits": recommended_outfits,
-        "ai_briefing": ai_briefing,
+        "city": display_city, "temp": current_temp, "condition": condition_text, "season": season,
+        "ai_briefing": ai_briefing, "current_style": selected_style, "pinterest_url": pinterest_url, "search_keyword": search_keyword
     }
     return render(request, "weather/index.html", context)
+
+
+# [2] 🌟 이미지칸만 따로 로딩하는 실시간 핀터레스트 검색 크롤링 API (비동기 호출용)
+def get_outfits(request):
+    season = request.GET.get("season", "여름").strip()
+    style = request.GET.get("style", "Office").strip()
+    
+    style_kr_map = {"Lovely": "러블리 코디", "Office": "오피스룩 여자", "Hip": "힙한 스타일", "Casual": "캐주얼 룩"}
+    search_keyword = f"{season} {style_kr_map.get(style, '오피스룩 여자')}"
+    
+    encoded_keyword = urllib.parse.quote(search_keyword)
+    pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
+    
+    outfits_list = []
+    
+    try:
+        session = requests.Session()
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Referer": "https://www.google.com/"
+        }
+        res = session.get(pinterest_url, headers=headers, timeout=5.0)
+        
+        if res.status_code == 200:
+            html_text = res.text
+            
+            # 🎯 [핵심 로직]: 스크립트 파일 내부에 숨겨져 전송되는 깨진 이미지 주소 패턴(\/ 포함)을 통째로 낚아챕니다.
+            # 핀터레스트 전용 데이터 추출 정규식 규격입니다.
+            raw_urls = re.findall(r'https?:\\?/\\?/i\.pinimg\.com\\[^"\s>,&#\\]+?\.jpg', html_text)
+            
+            # 만약 위 특수 패턴으로 안 잡힐 경우 일반 텍스트 내 주소 추출 시도
+            if not raw_urls:
+                raw_urls = re.findall(r'https://i\.pinimg\.com/[^"\s>\\,]+?\.jpg', html_text)
+
+            for r_url in raw_urls:
+                # 1. 깨진 슬래시 기호(\/)들을 브라우저가 인식할 수 있는 깔끔한 슬래시(/) 주소로 바꿉니다.
+                clean_url = r_url.replace("\\/", "/").replace("\\", "")
+                
+                # 2. 로고 이미지나 아이콘을 거르고 진짜 유저 코디 핀 이미지 형태만 수집합니다.
+                if any(size in clean_url for size in ["/236x/", "/474x/", "/736x/", "/originals/"]):
+                    # 프론트 슬라이더에서 선명하게 보이도록 무조건 고화질(736x) 주소 규격으로 강제 치환
+                    high_res_url = clean_url.replace("/236x/", "/736x/").replace("/474x/", "/736x/")
+                    
+                    if high_res_url not in outfits_list:
+                        outfits_list.append(high_res_url)
+                        if len(outfits_list) >= 8:  # 넉넉하게 8장 모이면 종료
+                            break
+                            
+    except Exception as e:
+        print(f"추출 오류 발생: {e}")
+
+    # 만약 검색에 차단 걸리거나 실패했을 시, 보내주신 3d5881a5811dbc37624b0dd2757cb389 등 검색 고화질 데이터 기본 백업 반환
+    if not outfits_list:
+        outfits_list = [
+            "https://i.pinimg.com/736x/3d/58/81/3d5881a5811dbc37624b0dd2757cb389.jpg",
+            "https://i.pinimg.com/736x/3a/13/b2/3a13b22cff21279030c03160c9ed4f2e.jpg",
+            "https://i.pinimg.com/736x/57/4e/84/574e8405d21f8a1bb07a998a64c2aceb.jpg",
+            "https://i.pinimg.com/736x/e8/18/8c/e8188c6e2d760bbd2b91b3d03d0256cb.jpg"
+        ]
+
+    # JSON 데이터 포맷으로 프론트에 리턴
+    return JsonResponse({"outfits": outfits_list})
+
