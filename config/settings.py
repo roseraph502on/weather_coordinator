@@ -128,3 +128,16 @@ INSTALLED_APPS = [
     
     'weather', # <-- 만든 앱 추가!
 ]
+
+ALLOWED_HOSTS = [
+    'weather-coordinator.vercel.app', 
+    '.vercel.app', 
+    'localhost', 
+    '127.0.0.1'
+]
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',  # 파일을 만들지 않고 메모리에서만 임시로 돌림
+    }
+}s
