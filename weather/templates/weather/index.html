@@ -63,7 +63,7 @@
             justify-content: center;
         }
         .slider-img {
-            height: 35vh;
+            height: 40vh;
             display: block;
             margin: 0 auto;
             padding: 20px;
@@ -83,7 +83,7 @@
 
 <div class="container py-4">
     <div class="text-center mb-2">
-        <img src="https://static.vecteezy.com/system/resources/previews/024/825/180/non_2x/3d-weather-icon-day-free-png.png" style="width: 140px; height: auto;" alt="Weather Icon">
+        <img src="https://static.vecteezy.com/system/resources/previews/024/825/180/non_2x/3d-weather-icon-day-free-png.png" style="width: 130px; height: auto;" alt="Weather Icon">
     </div>
 
     <div class="weather-container shadow-sm">
@@ -164,9 +164,6 @@
                     htmlContent += `
                         <div class="carousel-item ${activeClass}">
                             <img src="${imgUrl}" class="slider-img" alt="코디" referrerpolicy="no-referrer">
-                            <div class="p-3 text-center bg-light border-top">
-                                <p class="m-0 text-truncate text-muted small fw-bold">${season} ${style} 검색 매칭 픽 ${index + 1}</p>
-                            </div>
                         </div>
                     `;
                 });

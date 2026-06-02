@@ -119,23 +119,29 @@ def get_outfits(request):
             # HTML 내부의 모든 핀터레스트 이미지 주소 1차 추출
             raw_urls = re.findall(r'https://i\.pinimg\.com/[^\s"\'\(\)>,]+', html_text)
             
+            seen_signatures = set()
             for clean_url in raw_urls:
                 # 역슬래시(\) 제거 (JSON 이스케이프 문자 청소)
                 clean_url = clean_url.replace("\\", "")
-                
-                # 🎯 [수정 핵심] 대소문자 상관없이 오직 '.jpg'가 포함된 주소만 통과시킵니다.
-                if '.jpg' in clean_url.lower():
-                    
-                    # 🎯 .jpg 뒤에 붙은 쓰레기 데이터나 CSS 코드가 있다면 .jpg 기준으로 칼같이 컷
-                    clean_url = clean_url.split(".jpg")[0] + ".jpg"
-                    
-                    # 736x 고화질 규격으로 주소 치환
-                    high_res_url = clean_url.replace("/236x/", "/736x/").replace("/474x/", "/736x/").replace("/750x/", "/736x/").replace("/originals/", "/736x/")
-                    
-                    if high_res_url not in outfits_list:
-                        outfits_list.append(high_res_url)
-                        if len(outfits_list) >= 12:  # 넉넉하게 수집 후 프론트에서 4개 커트
-                            break
+
+                # 확장자 기준으로 잘라내면 쿼리 스트링이나 CSS 잔여물을 제거할 수 있습니다.
+                match = re.search(r'\.(jpg)', clean_url, re.IGNORECASE)
+                if not match:
+                    continue
+
+                clean_url = clean_url[:match.end()]
+                image_name = os.path.basename(clean_url)
+                if image_name in seen_signatures:
+                    continue
+
+                # 736x 고화질 규격으로 주소 치환
+                high_res_url = re.sub(r'/(?:\d+x\d+|originals)/', '/736x/', clean_url)
+                seen_signatures.add(image_name)
+
+                if high_res_url not in outfits_list:
+                    outfits_list.append(high_res_url)
+                    if len(outfits_list) >= 12:  # 넉넉하게 수집 후 프론트에서 4개 커트
+                        break
                             
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"서버 내부 오류: {str(e)}", "outfits": []})
