@@ -57,7 +57,9 @@ def index(request):
     search_keyword = f"{season} {style_kr}"
     
     encoded_keyword = urllib.parse.quote(search_keyword)
-    pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
+    # pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
+    pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed&source_id=pc_search"
+
 
     # AI 브리핑 생성
     openai_key = os.environ.get("OPENAI_API_KEY", "")
@@ -82,6 +84,7 @@ def index(request):
 
 
 # [2] 🌟 이미지칸만 따로 로딩하는 실시간 핀터레스트 검색 크롤링 API (비동기 호출용)
+
 def get_outfits(request):
     season = request.GET.get("season", "여름").strip()
     style = request.GET.get("style", "Office").strip()
@@ -90,57 +93,62 @@ def get_outfits(request):
     search_keyword = f"{season} {style_kr_map.get(style, '오피스룩 여자')}"
     
     encoded_keyword = urllib.parse.quote(search_keyword)
-    pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
+    pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}"
     
     outfits_list = []
     
     try:
-        session = requests.Session()
+        # 모바일 환경 위장 헤더
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
             "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-            "Referer": "https://www.google.com/"
+            "Cache-Control": "max-age=0",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+            "Upgrade-Insecure-Requests": "1"
         }
-        res = session.get(pinterest_url, headers=headers, timeout=5.0)
+        
+        res = requests.get(pinterest_url, headers=headers, timeout=6.0)
         
         if res.status_code == 200:
             html_text = res.text
             
-            # 🎯 [핵심 로직]: 스크립트 파일 내부에 숨겨져 전송되는 깨진 이미지 주소 패턴(\/ 포함)을 통째로 낚아챕니다.
-            # 핀터레스트 전용 데이터 추출 정규식 규격입니다.
-            raw_urls = re.findall(r'https?:\\?/\\?/i\.pinimg\.com\\[^"\s>,&#\\]+?\.jpg', html_text)
+            # HTML 내부의 모든 핀터레스트 이미지 주소 1차 추출
+            raw_urls = re.findall(r'https://i\.pinimg\.com/[^\s"\'\(\)>,]+', html_text)
             
-            # 만약 위 특수 패턴으로 안 잡힐 경우 일반 텍스트 내 주소 추출 시도
-            if not raw_urls:
-                raw_urls = re.findall(r'https://i\.pinimg\.com/[^"\s>\\,]+?\.jpg', html_text)
-
-            for r_url in raw_urls:
-                # 1. 깨진 슬래시 기호(\/)들을 브라우저가 인식할 수 있는 깔끔한 슬래시(/) 주소로 바꿉니다.
-                clean_url = r_url.replace("\\/", "/").replace("\\", "")
+            for clean_url in raw_urls:
+                # 역슬래시(\) 제거 (JSON 이스케이프 문자 청소)
+                clean_url = clean_url.replace("\\", "")
                 
-                # 2. 로고 이미지나 아이콘을 거르고 진짜 유저 코디 핀 이미지 형태만 수집합니다.
-                if any(size in clean_url for size in ["/236x/", "/474x/", "/736x/", "/originals/"]):
-                    # 프론트 슬라이더에서 선명하게 보이도록 무조건 고화질(736x) 주소 규격으로 강제 치환
-                    high_res_url = clean_url.replace("/236x/", "/736x/").replace("/474x/", "/736x/")
+                # 🎯 [수정 핵심] 대소문자 상관없이 오직 '.jpg'가 포함된 주소만 통과시킵니다.
+                if '.jpg' in clean_url.lower():
+                    
+                    # 🎯 .jpg 뒤에 붙은 쓰레기 데이터나 CSS 코드가 있다면 .jpg 기준으로 칼같이 컷
+                    clean_url = clean_url.split(".jpg")[0] + ".jpg"
+                    
+                    # 736x 고화질 규격으로 주소 치환
+                    high_res_url = clean_url.replace("/236x/", "/736x/").replace("/474x/", "/736x/").replace("/750x/", "/736x/").replace("/originals/", "/736x/")
                     
                     if high_res_url not in outfits_list:
                         outfits_list.append(high_res_url)
-                        if len(outfits_list) >= 8:  # 넉넉하게 8장 모이면 종료
+                        if len(outfits_list) >= 12:  # 넉넉하게 수집 후 프론트에서 4개 커트
                             break
                             
     except Exception as e:
-        print(f"추출 오류 발생: {e}")
+        return JsonResponse({"status": "error", "message": f"서버 내부 오류: {str(e)}", "outfits": []})
 
-    # 만약 검색에 차단 걸리거나 실패했을 시, 보내주신 3d5881a5811dbc37624b0dd2757cb389 등 검색 고화질 데이터 기본 백업 반환
-    if not outfits_list:
-        outfits_list = [
-            "https://i.pinimg.com/736x/3d/58/81/3d5881a5811dbc37624b0dd2757cb389.jpg",
-            "https://i.pinimg.com/736x/3a/13/b2/3a13b22cff21279030c03160c9ed4f2e.jpg",
-            "https://i.pinimg.com/736x/57/4e/84/574e8405d21f8a1bb07a998a64c2aceb.jpg",
-            "https://i.pinimg.com/736x/e8/18/8c/e8188c6e2d760bbd2b91b3d03d0256cb.jpg"
-        ]
-
-    # JSON 데이터 포맷으로 프론트에 리턴
-    return JsonResponse({"outfits": outfits_list})
-
+    # 추출 결과 응답
+    if outfits_list:
+        return JsonResponse({
+            "status": "success",
+            "outfits": outfits_list[:4]  # 최종 상위 4개만 프론트로 전송
+        })
+    else:
+        return JsonResponse({
+            "status": "not_found",
+            "message": "HTML은 가져왔으나, 순수 .jpg 규격의 이미지를 찾지 못했습니다.",
+            "outfits": []
+        })
