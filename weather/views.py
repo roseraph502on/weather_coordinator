@@ -116,32 +116,23 @@ def get_outfits(request):
         if res.status_code == 200:
             html_text = res.text
             
-            # HTML 내부의 모든 핀터레스트 이미지 주소 1차 추출
-            raw_urls = re.findall(r'https://i\.pinimg\.com/[^\s"\'\(\)>,]+', html_text)
+            # 고화질 736x 이미지만 직접 추출
+            high_res_urls = re.findall(r'https://i\.pinimg\.com/736x/[^\s"\'\(\)>,]+\.(?:jpg)', html_text, re.IGNORECASE)
             
             seen_signatures = set()
-            for clean_url in raw_urls:
-                # 역슬래시(\) 제거 (JSON 이스케이프 문자 청소)
-                clean_url = clean_url.replace("\\", "")
-
-                # 확장자 기준으로 잘라내면 쿼리 스트링이나 CSS 잔여물을 제거할 수 있습니다.
-                match = re.search(r'\.(jpg)', clean_url, re.IGNORECASE)
-                if not match:
-                    continue
-
-                clean_url = clean_url[:match.end()]
-                image_name = os.path.basename(clean_url)
+            for url in high_res_urls:
+                # 역슬래시(\) 제거
+                url = url.replace("\\", "")
+                
+                # 이미지 파일명 기반 중복 감지
+                image_name = os.path.basename(url)
                 if image_name in seen_signatures:
                     continue
-
-                # 736x 고화질 규격으로 주소 치환
-                high_res_url = re.sub(r'/(?:\d+x\d+|originals)/', '/736x/', clean_url)
                 seen_signatures.add(image_name)
-
-                if high_res_url not in outfits_list:
-                    outfits_list.append(high_res_url)
-                    if len(outfits_list) >= 12:  # 넉넉하게 수집 후 프론트에서 4개 커트
-                        break
+                
+                outfits_list.append(url)
+                if len(outfits_list) >= 12:
+                    break
                             
     except Exception as e:
         return JsonResponse({"status": "error", "message": f"서버 내부 오류: {str(e)}", "outfits": []})

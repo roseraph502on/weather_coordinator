@@ -93,3 +93,10 @@ USE_TZ = True
 
 # 10. 정적 파일 경로
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# 11. 기본 자동 필드 타입
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
