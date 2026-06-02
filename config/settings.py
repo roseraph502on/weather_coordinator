@@ -140,4 +140,4 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': ':memory:',  # 파일을 만들지 않고 메모리에서만 임시로 돌림
     }
-}s
+}
