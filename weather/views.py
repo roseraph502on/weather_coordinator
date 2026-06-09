@@ -84,7 +84,6 @@ def index(request):
 
 
 # [2] 🌟 이미지칸만 따로 로딩하는 실시간 핀터레스트 검색 크롤링 API (비동기 호출용)
-
 def get_outfits(request):
     season = request.GET.get("season", "여름").strip()
     style = request.GET.get("style", "Office").strip()
