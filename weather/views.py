@@ -60,7 +60,7 @@ def index(request):
     # pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
     pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed&source_id=pc_search"
 
-
+    
     # AI 브리핑 생성
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     if openai_key and openai_key.startswith("sk-"):
