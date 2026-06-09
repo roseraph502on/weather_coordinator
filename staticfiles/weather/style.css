@@ -1,0 +1,90 @@
+body {
+    background: url('https://i.pinimg.com/1200x/5a/01/81/5a0181d2333f4cf6f260253dfcb392df.jpg') no-repeat center center fixed;
+    background-size: cover;
+    font-family: 'Arial', sans-serif;
+    max-height: 100vh;
+}
+
+.weather-container {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 24px;
+    padding: 30px 20px;
+    max-width: 450px;
+    margin: 0 auto;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.city-name {
+    font-size: 24px;
+    color: #222;
+    margin-bottom: 5px;
+}
+
+.temp-display {
+    font-size: 54px;
+    font-weight: 300;
+    color: #111;
+}
+
+.tag-container {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.style-tag {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #555;
+    transition: all 0.2s ease;
+}
+
+.style-tag.active {
+    background: #2c444e !important;
+    color: #ffffff !important;
+    font-weight: bold;
+}
+
+.section-title {
+    text-align: center;
+    color: #2c444e;
+    font-weight: 700;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 20px;
+}
+
+.outfit-slider-card {
+    background: white;
+    max-width: 450px;
+    margin: 0 auto;
+    height: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.slider-img {
+    height: 40vh;
+    display: block;
+    margin: 0 auto;
+    padding: 20px;
+    object-fit: cover;
+}
+
+.loading-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 0;
+    color: #666;
+}
