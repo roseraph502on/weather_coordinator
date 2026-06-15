@@ -66,9 +66,11 @@ if os.environ.get('VERCEL'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': ':memory:',  
+            'NAME': ':memory:',
         }
     }
+    # Vercel에서는 데이터베이스가 유지되지 않기 때문에 세션을 쿠키 기반으로 처리
+    SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 else:
     # 로컬 개발 환경: 테이블이 깨지지 않도록 실제 파일 DB 사용
     DATABASES = {
