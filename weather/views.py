@@ -54,7 +54,8 @@ def index(request):
 
     style_kr_map = {"Lovely": "러블리 코디", "Office": "오피스룩 여자", "Hip": "힙한 스타일", "Casual": "캐주얼 룩"}
     style_kr = style_kr_map.get(selected_style, "오피스룩 여자")
-    search_keyword = f"{season} {style_kr}"
+    gender_word = "남성" if request.session.get("user_gender") == "male" else "여성"
+    search_keyword = f"{season} {style_kr} {gender_word}"
     
     encoded_keyword = urllib.parse.quote(search_keyword)
     # pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
@@ -115,8 +116,9 @@ def get_outfits(request):
     season = request.GET.get("season", "여름").strip()
     style = request.GET.get("style", "Office").strip()
     
-    style_kr_map = {"Lovely": "러블리 코디", "Office": "오피스룩 여자", "Hip": "힙한 스타일", "Casual": "캐주얼 룩"}
-    search_keyword = f"{season} {style_kr_map.get(style, '오피스룩 여자')}"
+    style_kr_map = {"Lovely": "러블리 코디", "Office": "오피스룩", "Hip": "힙한 스타일", "Casual": "캐주얼 룩"}
+    gender_word = "남성" if request.session.get("user_gender") == "male" else "여성"
+    search_keyword = f"{season} {style_kr_map.get(style, '오피스룩')} {gender_word}"
     
     encoded_keyword = urllib.parse.quote(search_keyword)
     pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}"
