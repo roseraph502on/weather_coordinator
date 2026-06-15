@@ -4,7 +4,7 @@ import re
 import urllib.parse
 import requests
 from bs4 import BeautifulSoup
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from openai import OpenAI
 
@@ -60,7 +60,7 @@ def index(request):
     # pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed"
     pinterest_url = f"https://kr.pinterest.com/search/pins/?q={encoded_keyword}&rs=typed&source_id=pc_search"
 
-
+    
     # AI 브리핑 생성
     openai_key = os.environ.get("OPENAI_API_KEY", "")
     if openai_key and openai_key.startswith("sk-"):
@@ -76,11 +76,38 @@ def index(request):
     else:
         ai_briefing = f"오늘({current_temp}°C)에 어울리는 {season} {selected_style} 스타일링입니다."
 
+    user_gender = request.session.get("user_gender")
+    if not user_gender:
+        return redirect("start")
+
     context = {
         "city": display_city, "temp": current_temp, "condition": condition_text, "season": season,
-        "ai_briefing": ai_briefing, "current_style": selected_style, "pinterest_url": pinterest_url, "search_keyword": search_keyword
+        "ai_briefing": ai_briefing, "current_style": selected_style, "pinterest_url": pinterest_url, "search_keyword": search_keyword,
+        "user_gender_label": request.session.get("user_gender_label", "알 수 없음")
     }
     return render(request, "weather/index.html", context)
+
+
+def start(request):
+    saved_gender = request.session.get("user_gender")
+    saved_gender_label = request.session.get("user_gender_label", "")
+    message = ""
+
+    if request.method == "POST":
+        gender = request.POST.get("gender", "").strip()
+        gender_map = {"male": "남성", "female": "여성"}
+        if gender in gender_map:
+            request.session["user_gender"] = gender
+            request.session["user_gender_label"] = gender_map[gender]
+            return redirect("index")
+        message = "성별을 선택해 주세요."
+
+    context = {
+        "saved_gender": saved_gender,
+        "saved_gender_label": saved_gender_label,
+        "message": message,
+    }
+    return render(request, "weather/start.html", context)
 
 
 # [2] 🌟 이미지칸만 따로 로딩하는 실시간 핀터레스트 검색 크롤링 API (비동기 호출용)

@@ -11,14 +11,6 @@ sys.path.append(BASE_DIR)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 from django.core.wsgi import get_wsgi_application
-if os.environ.get('VERCEL'):
-	try:
-		import django
-		django.setup()
-		from django.core.management import call_command
-		call_command('collectstatic', '--noinput')
-	except Exception as e:
-		print('collectstatic error:', e, file=sys.stderr)
 
 app = get_wsgi_application()
 application = app

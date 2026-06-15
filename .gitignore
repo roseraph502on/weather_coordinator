@@ -51,4 +51,7 @@ Thumbs.db
 
 # Temporary files
 *.tmp
-.DS_Store
+
+# Python cache files
+*.pyo
+*.pyd

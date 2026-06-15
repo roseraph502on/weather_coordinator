@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시작 페이지 | Weather Coordinator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'weather/style.css' %}">
+</head>
+<body>
+<div class="container py-5">
+    <div class="weather-container shadow-sm">
+        <h1 class="mb-3">시작 페이지</h1>
+        <p class="text-secondary mb-4">사용자의 성별 정보를 저장해서 메인 화면에서 보여줄게요.</p>
+
+        {% if message %}
+            <div class="alert alert-warning">{{ message }}</div>
+        {% endif %}
+
+        <form method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label fw-bold">성별을 선택해 주세요</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male" {% if saved_gender == 'male' %}checked{% endif %}>
+                    <label class="form-check-label" for="genderMale">남성</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female" {% if saved_gender == 'female' %}checked{% endif %}>
+                    <label class="form-check-label" for="genderFemale">여성</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">저장하고 메인으로 이동</button>
+        </form>
+
+        {% if saved_gender_label %}
+            <div class="text-center text-muted small">
+                현재 저장된 성별: <strong>{{ saved_gender_label }}</strong>
+            </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

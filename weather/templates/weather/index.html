@@ -13,14 +13,19 @@
 <body>
 
 <div class="container py-4">
-    <div class="text-center mb-2">
+    <!-- 상단 -->
+    <div class="text-center mb-2 position-relative">
         <img src="https://static.vecteezy.com/system/resources/previews/024/825/180/non_2x/3d-weather-icon-day-free-png.png" style="width: 130px; height: auto;" alt="Weather Icon">
+        <!-- 더보기 버튼 -->
+        <button class="btn 더보기" type="button" onclick="window.location.href='{% url 'start' %}'">&#8942;</button>
+        
     </div>
-
+    <!-- 날씨창 -->
     <div class="weather-container shadow-sm">
+        <div class="text-end small text-secondary mb-2">성별: {{ user_gender_label }}</div>
         <div class="city-name">{{ city }}</div>
         <div class="temp-display">{{ temp }}°C</div>
-        
+        <!-- 옷 스타일 태그 버튼 -->
         <div class="tag-container">
             <button class="style-tag {% if current_style == 'Lovely' %}active{% endif %}" onclick="changeStyle('Lovely')">Lovely</button>
             <button class="style-tag {% if current_style == 'Office' %}active{% endif %}" onclick="changeStyle('Office')">Office</button>
@@ -28,13 +33,14 @@
             <button class="style-tag {% if current_style == 'Casual' %}active{% endif %}" onclick="changeStyle('Casual')">Casual</button>
         </div>
     </div>
-
+    <!-- AI 브리핑 -->
     <div style="max-width: 450px; margin: 15px auto;">
         <div class="p-3 rounded-4 bg-white bg-opacity-75 text-secondary shadow-sm text-center small fw-medium">
-            🤖 AI 요약: "{{ ai_briefing }}"
+            🤖: "{{ ai_briefing }}"
         </div>
     </div>
-
+    
+    <!-- 코디 슬라이더 -->
     <h2 class="section-title">RECOMMENDED COORDINATION</h2>
 
     <div id="outfitCarousel" class="carousel slide outfit-slider-card shadow" data-bs-ride="carousel">
@@ -49,7 +55,7 @@
             <span class="carousel-control-prev-icon bg-dark rounded-circle p-2" aria-hidden="true" style="filter: invert(1);"></span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#outfitCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true" style="filter: invert(1);"></span>
+            <span class="chevron-right carousel-control-next-icon bg-dark rounded-circle p-2" aria-hidden="true" style="filter: invert(1);"></span>
         </button>
     </div>
 </div>
