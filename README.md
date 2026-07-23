@@ -38,29 +38,32 @@
 
 💻 코드 구조
 weather-fit/  
-├── backend/                  # 백엔드 (Python/FastAPI)  
-│   ├── app/  
-│   │   ├── api/              # API 엔드포인트 (라우터)  
-│   │   │   ├── weather.py    # 날씨 조회 API  
-│   │   │   └── outfit.py     # 옷 추천 API  
-│   │   ├── core/             # 앱 설정 및 환경변수  
-│   │   │   └── config.py     # API 키, DB 설정 등  
-│   │   ├── services/         # 비즈니스 로직 (외부 API 연동 및 알고리즘)  
-│   │   │   ├── weather_service.py # OpenWeatherMap 통신  
-│   │   │   └── outfit_service.py  # 온도별 옷 추천 로직  
-│   │   ├── models/           # 데이터베이스 모델 (DB 사용 시)  
-│   │   │   └── outfit.py  
-│   │   └── main.py           # 백엔드 실행 메인 파일  
-│   ├── .env                  # API KEY 보관 (WEATHER_API_KEY)  
-│   └── requirements.txt      # 파이썬 라이브러리 목록  
-│  
-└── frontend/                 # 프론트엔드 (React / Vue)  
-    ├── src/  
-    │   ├── components/       # UI 부품 (날씨 카드, 옷 추천 카드)  
-    │   │   ├── WeatherCard.jsx  
-    │   │   └── OutfitCard.jsx
-    │   ├── services/         # 백엔드 API와 통신하는 파일  
-    │   │   └── api.js  
-    │   ├── App.jsx           # 메인 페이지  
-    │   └── index.js  
-    └── package.json  
+weather_coordinator/  
+├── config/                      # Django 프로젝트 설정  
+│   ├── __init__.py  
+│   ├── asgi.py  
+│   ├── settings.py  
+│   ├── urls.py  
+│   └── wsgi.py  
+├── weather/                     # Django 앱  
+│   ├── __init__.py  
+│   ├── admin.py  
+│   ├── apps.py  
+│   ├── models.py  
+│   ├── tests.py  
+│   ├── urls.py  
+│   ├── views.py  
+│   ├── migrations/  
+│   │   └── __init__.py  
+│   ├── static/  
+│   │   └── weather/  
+│   │       └── style.css  
+│   └── templates/  
+│       └── weather/  
+│           ├── index.html  
+│           └── start.html  
+├── db.sqlite3  
+├── manage.py  
+├── requirements.txt   
+├── vercel_app.py  
+└── vercel.json  
