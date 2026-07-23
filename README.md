@@ -32,3 +32,34 @@
     고해상도 이미지(736x) 추출
     비동기로 슬라이더에 로드
     코드: get_outfits() API로 이미지 로딩 분리 → 빠른 UX
+    
+💻 코드 구조
+    weather_coordinator/
+├── config/                      # Django 프로젝트 설정
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── weather/                     # Django 앱
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── tests.py
+│   ├── urls.py
+│   ├── views.py
+│   ├── migrations/
+│   │   └── __init__.py
+│   ├── static/
+│   │   └── weather/
+│   │       └── style.css
+│   └── templates/
+│       └── weather/
+│           ├── index.html
+│           └── start.html
+├── db.sqlite3
+├── manage.py
+├── requirements.txt
+├── vercel_app.py
+└── vercel.json
